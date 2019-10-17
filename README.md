@@ -13,7 +13,7 @@ Actions have certain limitations.  Many of these limitations are for security an
 
 ## Pre-requisites
 
-1. If you don't already own a GitHub App you want to impersonate, [create a new GitHub App](https://developer.github.com/apps/building-github-apps/creating-a-github-app/) with your desired permissions.  If only creating a new app for the purposes of impersonation by Actions, you do not need to provide a `Webhook URL or Webhook Secret`
+1. If you do not already own a GitHub App you want to impersonate, [create a new GitHub App](https://developer.github.com/apps/building-github-apps/creating-a-github-app/) with your desired permissions.  If only creating a new app for the purposes of impersonation by Actions, you do not need to provide a `Webhook URL or Webhook Secret`
 
 2. Install the App on your repositories. 
 
