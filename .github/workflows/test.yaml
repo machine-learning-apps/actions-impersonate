@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@master
     
       - name: emit-output
-        uses: docker://hamelsmu/chatops:temp
+        uses: docker://hamelsmu/actions-impersonate:temp
         id: get_token
         env:
           INPUT_APP_PEM: ${{ secrets.APP_PEM }}
