@@ -97,7 +97,7 @@ if __name__ == "__main__":
     payload_fname = os.getenv('GITHUB_EVENT_PATH')
     owner, repo = os.getenv('GITHUB_REPOSITORY').split('/')
 
-    if not pem and app_id:
+    if not (pem and app_id):
         raise EnvironmentError("You must supply a value for APP_PEM and APP_ID to authenticate as a GitHub App.")
 
     with open('temp_pem_file.txt', 'w') as f:
