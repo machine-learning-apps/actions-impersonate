@@ -1,14 +1,29 @@
-![Actions Status](https://github.com/machine-learning-apps/actions-chatops/workflows/Tests/badge.svg)
+![Actions Status](https://github.com/machine-learning-apps/actions-impersonate/workflows/Tests/badge.svg)
 
-# Trigger Actions With ChatOps (Comments In a PR)
+# Impersonate a GitHub App With GitHub Actions
 
-This action helps you trigger downstream actions with a custom command made via a comment in a pull request, otherwhise known as [ChatOps](https://www.pagerduty.com/blog/what-is-chatops/).  This Action listens to all comments made in pull requests and emits the output variable `triggered` as `true` (along with other variables) that you can use for branching downstream Actions.  Consider the below toy example that triggers downstream actions with the command `/trigger-something-with-this`
+## Why?
+
+Actions have certain limitations.  Many of these limitations are for security and stability reasons, however not all of them are.  Some examples where you might want to impersonate a GitHub App temporarily in your workflow:
+
+- If you accept PRs from forks, the `GITHUB_TOKEN` you get is a READ ONLY token from that fork, so a workaround can be impersonate a GitHub App to do things like comment on the PR. 
+
+- You want an [event to trigger a workflow](https://help.github.com/en/articles/events-that-trigger-workflows) on a specific ref or branch in a way that is not natively supported by Actions.  For example, a pull request comment fires the [issue_comment event](https://help.github.com/en/articles/events-that-trigger-workflows#issue-comment-event-issue_comment) which is sent to the default branch and not the PR's branch.  You can temporarily impersonate a GitHub App to make an event, such as a [label a pull_request](https://help.github.com/en/articles/events-that-trigger-workflows#pull-request-event-pull_request) to trigger a workflow on the right branch. This takes advantage of the fact that Actions cannot create events that trigger workflows, however other Apps can.
+
+
+## Pre-requisites
+
+1. If you don't already own a GitHub App you want to impersonate, [create a new GitHub App](https://developer.github.com/apps/building-github-apps/creating-a-github-app/) with your desired permissions.  If only creating a new app for the purposes of impersonation by Actions, you do not need to provide a `Webhook URL or Webhook Secret`
+
+2. Install the App on your repositories. 
 
 ## Example Usage
 
 ```yaml
 name: Demo
-on: [issue_comment] # PRs == Issues in GitHub
+on: 
+  pull_request:
+    type: opened # PRs == Issues in GitHub
 
 jobs:
   demo:
@@ -18,52 +33,28 @@ jobs:
         # This step listens to all PR events for the triggering phrase
       - name: listen for PR Comments
         id: prcomm
-        uses: machine-learning-apps/actions-chatops@master
+        uses: machine-learning-apps/actions-impersonate@master
         with:
-          TRIGGER_PHRASE: "/trigger-something-with-this"
-          PR_ACKNOWLEDGEMENT_LABEL: "demo-label"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APP_PEM: ${{ secrets.APP_PEM }}
+          APP_ID: ${{ secrets.APP_ID }}
 
-      # This step clones the branch of the PR associated with the triggering phrase, but only if it is triggered.
-      - name: clone branch of PR
+      # Get App Installation Token From Previous Step
+      - name: Get App Instllation Token
         if: steps.prcomm.outputs.TRIGGERED == 'true'
-        uses: actions/checkout@master
-        with:
-          ref: ${{ steps.prcomm.outputs.SHA }}
-
-      # This step is a toy example that illustrates how you can use outputs from the pr-command action
-      - name: print variables
-        if: steps.prcomm.outputs.TRIGGERED == 'true'
-        run: echo "${USERNAME} made a triggering comment on PR# ${PR_NUMBER} for ${BRANCH_NAME}"
+        run: |
+          echo "This token is masked: ${TOKEN}"
         env: 
-          BRANCH_NAME: ${{ steps.prcomm.outputs.BRANCH_NAME }}
-          PR_NUMBER: ${{ steps.prcomm.outputs.PR_NUMBER }}
-          USERNAME: ${{ steps.prcomm.outputs.COMMENTER_USERNAME }}
+          TOKEN: ${{ steps.prcomm.outputs.APP_INSTALLATION_TOKEN }}
 ```
 
 A demonstration of this in action can be found on [this PR](https://github.com/machine-learning-apps/actions-pr-commands/pull/5).
 
 ## Mandatory Inputs
 
-1. `TRIGGER_PHRASE`: The phrase in a PR comment that you want to trigger downstream Actions.  Example - "/deploy-app-test".
+- `APP_PEM`: description: string version of your PEM file used to authenticate as a GitHub App. 
 
-## Optional Inputs
-
-1. `PR_ACKNOWLEDGEMENT_COMMENT`: An optional comment to make in the PR if a triggering comment is detected.  This is meant to provide immediate feedback to the user that the triggering comment was detected.
-
-2. `PR_ACKNOWLEDGEMENT_LABEL`: An optional label to add to the PR if a triggering comment is detected.  This is meant to provide immediate feedback to the user that the triggering comment was detected.
-
-3. `TEST_EVENT_PATH`: An alternate place to fetch the payload for testing and debugging when making changes to this Action.  This is set to they system environment variable $GITHUB_EVENT_PATH by default.
-
-4. `DEBUG`: Setting this variable to any value will turn debug mode on. This prints the body of the comment to stdout.
+- `APP_ID`: your GitHub App ID.
 
 ## Outputs
 
-1. `SHA`: The SHA of the branch on the PR at the time the triggering comment was made.
-2. `BRANCH_NAME`: The name of the branch corresponding to the PR.
-3. `PR_NUMBER`: The number of the PR, ex: `https://github.com/{owner}/{repo}/pull/{PR_NUMBER}`.
-4. `COMMENTER_USERNAME`: The GitHub username of the person that made the triggering comment in the PR.
-5. `TRIGGERED`: this is a boolean value that is either `true` or `false` depending on if a triggering comment was detected in a PR.  This is an important outptut variable that you may want to condition downstream Actions to run on with an `if:` statement (see example at the beginning).
-
-These outputs are useful for downstream Actions that you want to trigger with your PR command. For example, you might decide to pass the `SHA` or the `BRANCH_NAME to the [actions/checkout](https://github.com/actions/checkout) Action as the `ref` input to clone the branch associated with the comment.
+ - `APP_INSTALLATION_TOKEN`: The [installation access token](https://developer.github.com/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-an-installation) for the GitHub App corresponding to the current repository.

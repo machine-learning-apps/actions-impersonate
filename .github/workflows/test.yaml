@@ -1,0 +1,49 @@
+name: Tests
+on: [push]
+
+jobs:
+  build-temp-container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      
+      - name: build-temp-container
+        run: |
+          echo ${PASSWORD} | docker login -u $USERNAME --password-stdin
+          docker build -t hamelsmu/actions-impersonate:temp -f prebuild.Dockerfile .
+          docker push hamelsmu/actions-impersonate:temp
+        env:
+          USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  test-container:
+    needs: [build-temp-container]
+    runs-on: ubuntu-latest
+    steps:
+  
+      - uses: actions/checkout@master
+    
+      - name: emit-output
+        uses: docker://hamelsmu/chatops:temp
+        id: get_token
+        env:
+          INPUT_APP_PEM: ${{ secrets.APP_PEM }}
+          INPUT_APP_ID: ${{ secrets.APP_ID }}
+
+      - name: test-output
+        run: |
+          import os
+          assert os.getenv('TOKEN'), "Was not able to generate token"
+        shell: python
+        env:
+          TOKEN: ${{ steps.get_token.outputs.APP_INSTALLATION_TOKEN }}
+
+      - name: build and push final image hamelsmu/actions-impersonate
+        run: |
+          cd $GITHUB_WORKSPACE
+          echo ${PASSWORD} | docker login -u $USERNAME --password-stdin
+          docker build -t hamelsmu/actions-impersonate -f prebuild.Dockerfile .
+          docker push hamelsmu/actions-impersonate 
+        env:
+          USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
