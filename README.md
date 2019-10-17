@@ -47,8 +47,6 @@ jobs:
           TOKEN: ${{ steps.prcomm.outputs.APP_INSTALLATION_TOKEN }}
 ```
 
-A demonstration of this in action can be found on [this PR](https://github.com/machine-learning-apps/actions-pr-commands/pull/5).
-
 ## Mandatory Inputs
 
 - `APP_PEM`: description: string version of your PEM file used to authenticate as a GitHub App. 
