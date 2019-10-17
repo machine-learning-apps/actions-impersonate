@@ -94,10 +94,12 @@ class GitHubApp(GitHub):
 if __name__ == "__main__":
     pem = os.getenv('INPUT_APP_PEM')
     app_id = os.getenv('INPUT_APP_ID')
-    
+    payload_fname = os.getenv('GITHUB_EVENT_PATH')
+    owner, repo = os.getenv('GITHUB_REPOSITORY').split('/')
+
     if not pem and app_id:
         raise EnvironmentError("You must supply a value for APP_PEM and APP_ID to authenticate as a GitHub App.")
- 
+
     with open('temp_pem_file.txt', 'w') as f:
         f.write(pem)
     app = GitHubApp(pem_path='temp_pem_file.txt', app_id=app_id)
