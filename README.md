@@ -36,7 +36,7 @@ jobs:
           APP_ID: ${{ secrets.APP_ID }}
 
       # Get App Installation Token From Previous Step
-      - name: Get App Instllation Token
+      - name: Get App Installation Token
         if: steps.prcomm.outputs.TRIGGERED == 'true'
         run: |
           echo "This token is masked: ${TOKEN}"
