@@ -1,7 +1,9 @@
 ![Actions Status](https://github.com/machine-learning-apps/actions-impersonate/workflows/Tests/badge.svg)
 
+
 # Impersonate a GitHub App With GitHub Actions
 
+### Note: This Action has been deprecated in favor of [machine-learning-apps/app-token](https://github.com/machine-learning-apps/actions-app-token).  However, we are still keeping this Action up for legacy reasons.  Please head over [to the new version](https://github.com/machine-learning-apps/actions-app-token) of this Action if using this for the first time.
 
 ## Why?
 
