@@ -2,6 +2,7 @@
 
 # Impersonate a GitHub App With GitHub Actions
 
+
 ## Why?
 
 Actions have certain limitations.  Many of these limitations are for security and stability reasons, however not all of them are.  Some examples where you might want to impersonate a GitHub App temporarily in your workflow:
